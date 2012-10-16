@@ -25,7 +25,7 @@ def safe_url(prefix, *paths):
             suffix = suffix[1:]
         return "%s/%s" % (prefix, urllib.quote(suffix.encode("utf-8")))
     return host
-    
+
 def safe_unicode(obj, encoding="utf-8"):
     """Returns a unicode object, suppressing all errors"""
     t = type(obj)
@@ -40,7 +40,7 @@ def safe_unicode(obj, encoding="utf-8"):
             return unicode(obj)
         else:
             return str(obj).decode(encoding)
-    
+
 def safe_str(obj, encoding="utf-8"):
     """Returns a string object, suppressing all errors"""
     if isinstance(obj, unicode):
@@ -58,7 +58,7 @@ def safe_int(value):
         return int(value)
     except:
         return 0
-        
+
 def str_mask(message):
     """Masks a string to make it unreadable.
     This is not to be used as a mean of encryption"""
@@ -89,7 +89,7 @@ def server_name(url):
     if info.port and info.port not in (80, 443):
         name = "%s:%s" % (name, info.port)
     return name
-    
+
 def parse_form_params(source, form_id=None, exclude=None):
     """Returns the values of a HTML form in a dict"""
     if isinstance(source, basestring):
@@ -119,7 +119,7 @@ def parse_form_params(source, form_id=None, exclude=None):
         elif kind == "TEXT" and "__textarea__" in params:
             params[params["__textarea__"]] = data
             del params["__textarea__"]
-    
+
     parse_form_params.handler = parse_input
     if form_id:
         def parse_form(kind, data):
@@ -133,31 +133,31 @@ def parse_form_params(source, form_id=None, exclude=None):
         if parse_form_params.handler(kind, data):
             break
     return params
-    
+
 def parse_recent_changes(source, path_prefix="/wiki"):
     """Parses the 'RecentChanges' HTML source and return an array of dict
     containing the wiki 'name' and 'remote_version'"""
-    return _parse_html_version_links(source, 
-        lambda data: data[1].get("id", None) == "wikipage", 
+    return _parse_html_version_links(source,
+        lambda data: data[1].get("id", None) == "wikipage",
         path_prefix
     )
 
 def parse_timeline(source, path_prefix="/wiki"):
     """Parses the 'Timeline' HTML source and return an array of dict
     containing the wiki 'name' and 'remote_version'"""
-    return _parse_html_version_links(source, 
-        lambda data: data[1].get("id", None) == "content", 
+    return _parse_html_version_links(source,
+        lambda data: data[1].get("id", None) == "content",
         path_prefix
     )
 
 def parse_wiki(source, path_prefix="/wiki"):
     """Parses a wiki pageit HTML source and return an array of dict
     containing the wiki 'name' and 'remote_version'"""
-    return _parse_html_version_links(source, 
-        lambda data: data[1].get("class", None) == "trac-modifiedby", 
+    return _parse_html_version_links(source,
+        lambda data: data[1].get("class", None) == "trac-modifiedby",
         path_prefix
     )
-    
+
 def _parse_html_version_links(source, check_data, path_prefix):
     if isinstance(source, basestring):
         f = StringIO(source)
@@ -208,18 +208,18 @@ def _parse_html_version_links(source, check_data, path_prefix):
 
 class RegExpFilter(object):
     """Helper class to match a string to multiple regular expressions."""
-    
+
     def __init__(self, filters):
         if isinstance(filters, basestring):
             filters = filters.split()
         self._regexes = filters and [re.compile(f) for f in filters] or []
-    
+
     def matches(self, name):
         for r in self._regexes:
             if r.match(name):
                 return True
         return False
-        
+
 class WebClient(object):
 
     def __init__(self, baseurl, username=None, password=None, debug=False):
@@ -234,7 +234,7 @@ class WebClient(object):
         self._cookie_jar = None
         self._opener = None
         self._authenticated = False
-    
+
     def open(self, path, data=None, method="GET"):
         self.authenticate()
         url = self.url(path)
@@ -251,7 +251,7 @@ class WebClient(object):
                 return self.opener().open(req, data)
             else:
                 raise e
-                
+
     def opener(self, no_cache=False):
         if not self._opener:
             m = md5()
@@ -273,7 +273,7 @@ class WebClient(object):
             self._require_authentication = False
             if self.username and self.password:
                 password_mgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
-                password_mgr.add_password(None, self.baseurl, 
+                password_mgr.add_password(None, self.baseurl,
                     self.username, self.password)
                 opener.add_handler(urllib2.HTTPBasicAuthHandler(password_mgr))
                 opener.add_handler(urllib2.HTTPDigestAuthHandler(password_mgr))
@@ -281,17 +281,17 @@ class WebClient(object):
             self._opener = opener
             self._cookie_jar = cookie_jar
         return self._opener
-    
+
     def close(self):
         self.save_cookie()
         self._cookie_jar = None
         self._opener = None
-    
+
     def test(self):
         self.close()
         self.opener(no_cache=True)
         return self.open("wiki")
-        
+
     def authenticate(self):
         opener = self.opener()
         if self._require_authentication:
@@ -302,44 +302,44 @@ class WebClient(object):
             except Exception, e:
                 self.close()
                 raise e
-         
+
     def save_cookie(self):
         if self._cookie_jar:
             self._cookie_jar.save(ignore_discard=True)
 
     def url(self, path=""):
         return safe_url(self.baseurl, path)
-        
+
     def basepath(self, path=""):
         return urlparse(self.url(path)).path
-    
+
     def get_remote_list(self):
         return parse_recent_changes(
             self.open("wiki/RecentChanges"), self.basepath("wiki"))
-    
+
     def get_remote_updates(self, date, days=10):
         data = {
             "wiki": "on",
         }
         return parse_timeline(
             self.open("timeline", data, "GET"), self.basepath("wiki"))
-    
+
     def get_remote_version(self, name):
         return parse_wiki(
             self.open("wiki/%s" % name), self.basepath("wiki"))
-        
+
     def pull(self, name, version=None):
         data = { "format":"txt" }
         if version:
             data["version"] = version
         f = self.open("wiki/%s" % name, data, "GET")
         return safe_unicode(f.read())
-    
+
     def push(self, name, text, comments=None):
         data = { "action":"edit" }
         params = parse_form_params(
-            self.open("wiki/%s" % name, data, "GET"), 
-            form_id="edit", 
+            self.open("wiki/%s" % name, data, "GET"),
+            form_id="edit",
             exclude=("cancel", "preview", "diff", "merge")
         )
         if not params:
@@ -354,7 +354,7 @@ class WebClient(object):
         if not info:
             raise RuntimeError("Unable to post data to remote server")
         return info[0]
-    
+
     def _format_comment(self, comments=""):
         from wikisync.plugin import DEFAULT_SIGNATURE
         marker = DEFAULT_SIGNATURE

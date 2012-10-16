@@ -20,9 +20,9 @@ from trac.wiki.model import WikiPage
 from pkg_resources import resource_filename
 
 __all__ = [
-    "WikiSyncEnvironment", 
-    "WikiSyncPlugin", 
-    "WikiSyncPagePlugin", 
+    "WikiSyncEnvironment",
+    "WikiSyncPlugin",
+    "WikiSyncPagePlugin",
     "WikiSyncAdminPanel"
 ]
 
@@ -43,13 +43,13 @@ Inter*
 
 class WikiSyncMixin(object):
     """Component mixin provides common utility methods"""
-        
+
     def _get_config(self, key, default=None):
         return self.env.config.get(CONFIG_SECTION, key, default)
-        
+
     def _set_config(self, key, value):
         return self.env.config.set(CONFIG_SECTION, key, value)
-    
+
     def _save_config(self, req=None):
         try:
             self.config.save()
@@ -65,11 +65,11 @@ class WikiSyncMixin(object):
             db = self.env.get_read_db()
         cursor = db.cursor()
         row = cursor.execute("""
-            SELECT value FROM system 
+            SELECT value FROM system
             WHERE name='wikisync.schema.version'
         """).fetchone()
         return row and int(row[0]) or 0
-    
+
     def _render_assets(self, req):
         add_stylesheet(req, "wikisync/wikisync.css")
         add_script(req, "wikisync/underscore.js")
@@ -78,16 +78,16 @@ class WikiSyncMixin(object):
 
 class WikiSyncEnvironment(Component, WikiSyncMixin):
     """WikiSync environment setup"""
-    
+
     implements(IEnvironmentSetupParticipant, IWikiChangeListener)
-    
+
     # Component cannot be turn off
     required = True
-    
+
     # IEnvironmentSetupParticipant
     def environment_created(self):
         pass
-            
+
     def environment_needs_upgrade(self, db):
         return self._get_db_version() != DB_VERSION
 
@@ -105,12 +105,12 @@ class WikiSyncEnvironment(Component, WikiSyncMixin):
                 raise TracError("Invalid schema version %s" % i)
             script.do_upgrade(self.env, i, cursor)
             cursor.execute("""
-                UPDATE system SET value=%s 
+                UPDATE system SET value=%s
                 WHERE name='wikisync.schema.version'
             """, (i,))
             if cursor.rowcount < 1:
                 cursor.execute("""
-                    INSERT INTO system(name, value) 
+                    INSERT INTO system(name, value)
                     VALUES('wikisync.schema.version', %s)
                 """, (i,))
             db.commit()
@@ -149,19 +149,19 @@ class WikiSyncEnvironment(Component, WikiSyncMixin):
 
     def wiki_page_version_deleted(self, page):
         self.wiki_page_version_deleted(page)
-        
-    def wiki_page_renamed(self, page, old_name): 
+
+    def wiki_page_renamed(self, page, old_name):
         # Treat as new page
         self.wiki_page_added(page)
-        
+
 class WikiSyncAdminPanel(Component, WikiSyncMixin):
     """Disabling this option will require manual editing of the trac.init."""
-    
+
     implements(IAdminPanelProvider)
 
     def get_admin_panels(self, req):
         if "TRAC_ADMIN" in req.perm:
-            yield ("general", "General", 
+            yield ("general", "General",
                 "wikisync", "Wiki Synchronization")
 
     def render_admin_panel(self, req, cat, page, path_info):
@@ -219,15 +219,15 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
         }
         Chrome(self.env).add_textarea_grips(req)
         return "wikisync_admin.html", { "data":data }
-    
+
 
 class WikiSyncPagePlugin(Component, WikiSyncMixin):
-    """Provides additional controls in the context menu 
+    """Provides additional controls in the context menu
     of individual wiki page.
-    
+
     Requires WikiSyncPlugin."""
     implements(ITemplateStreamFilter)
-    
+
     # ITemplateStreamFilter
     def filter_stream(self, req, method, filename, stream, data):
         if "WIKI_ADMIN" in req.perm and filename == "wiki_view.html":
@@ -251,7 +251,7 @@ class WikiSyncPagePlugin(Component, WikiSyncMixin):
                                 class_="status"
                             ),
                             Markup("&darr;"),
-                            href="#", 
+                            href="#",
                             class_=item.status,
                             id_="wikisync-panel-toggle"
                         ),
@@ -265,39 +265,39 @@ class WikiSyncPagePlugin(Component, WikiSyncMixin):
                     ).generate(**params)
                 )
         return stream
-        
+
 class WikiSyncPlugin(Component, WikiSyncMixin):
     """Central interface for managing wiki syncronization"""
 
     implements(INavigationContributor, IRequestHandler, ITemplateProvider)
-    
+
     # INavigationContributor methods
     def get_active_navigation_item(self, req):
         return "wikisync"
-    
+
     def get_navigation_items(self, req):
         if "WIKI_ADMIN" in req.perm:
             yield ("mainnav", "wikisync",
                    tag.a("Wiki Sync", href=req.href.wikisync()))
-    
+
     # IRequestHandler methods
     def match_request(self, req):
         return req.path_info == "/wikisync"
-    
+
     # ITemplateProvider
     def get_templates_dirs(self):
         return [resource_filename(__name__, "templates")]
-    
+
     def get_htdocs_dirs(self):
         return [("wikisync", resource_filename(__name__, "htdocs"))]
-        
+
     def process_request(self, req):
         req.perm.require("WIKI_ADMIN")
         if req.args.get("action"):
             return self._process_action(req)
         else:
             return self._process_main(req)
-    
+
     def _process_main(self, req):
         dao = WikiSyncDao(self.env)
         self._render_assets(req)
@@ -393,7 +393,7 @@ class WikiSyncPlugin(Component, WikiSyncMixin):
                         assert wiki.version > 0, "Cannot find wiki '%s'" % item.name
                         item = item.replace(
                             **wc.push(
-                                item.name, 
+                                item.name,
                                 wiki.text,
                                 wiki.comment
                             )
@@ -421,7 +421,7 @@ class WikiSyncPlugin(Component, WikiSyncMixin):
                         dao.update(item)
                         self.log.debug("Resolved wiki '%s' as %s" % \
                             (item.name, status))
-                        
+
             else:
                 raise ValueError("Unsupported action '%s'" % action)
         except Exception, e:
@@ -430,6 +430,8 @@ class WikiSyncPlugin(Component, WikiSyncMixin):
         finally:
             if wc:
                 wc.close()
+        if req.args.get("no_header") == '1':
+            return
         if req.get_header("X-Requested-With") == "XMLHttpRequest" or \
             req.get_header("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest":
             if error:

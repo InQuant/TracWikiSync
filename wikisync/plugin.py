@@ -457,7 +457,7 @@ class WikiSyncPlugin(Component, WikiSyncMixin):
                         "without url configuration.")
         username = self._get_config("username")
         password = self._get_config("password")
-        password = self._get_config("proxy")
+        proxy = self._get_config("proxy")
         if password:
             try:
                 password = str_unmask(password)

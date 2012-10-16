@@ -172,6 +172,7 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
             url = req.args.get("url", "")
             username = req.args.get("username", "")
             password = req.args.get("password", "")
+            proxy = req.args.get("proxy", "")
             if password == password_stud:
                 password = self._get_config("password")
             ignorelist = req.args.get("ignorelist", "")
@@ -184,7 +185,7 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
             if server_info_changed and url:
                 # remote server info has changed, test connection
                 try:
-                    wc = WebClient(url, username, password, True)
+                    wc = WebClient(url, username, password, proxy, True)
                     wc.test()
                 except Exception, e:
                     if hasattr(e, "code") and e.code == 401:
@@ -199,6 +200,7 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
                 self._set_config("username", username)
                 self._set_config("password", password)
                 self._set_config("ignorelist", ignorelist)
+                self._set_config("proxy", proxy)
                 self._save_config(req)
                 if not url:
                     add_warning(req, "Remote server not set, "
@@ -214,6 +216,7 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
         data = {
             "url": self._get_config("url", ""),
             "username": self._get_config("username", ""),
+            "proxy": self._get_config("proxy", ""),
             "password": password,
             "ignorelist": self._get_config("ignorelist", ""),
         }
@@ -454,10 +457,11 @@ class WikiSyncPlugin(Component, WikiSyncMixin):
                         "without url configuration.")
         username = self._get_config("username")
         password = self._get_config("password")
+        password = self._get_config("proxy")
         if password:
             try:
                 password = str_unmask(password)
             except ValueError:
                 # assume its in clear text
                 pass
-        return WebClient(baseurl, username, password, debug=False)
+        return WebClient(baseurl, username, password, proxy, debug=False)

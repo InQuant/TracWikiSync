@@ -234,7 +234,7 @@ class WebClient(object):
         self._cookie_jar = None
         self._opener = None
         self._authenticated = False
-        self.proxy = proxy
+        self.proxy = proxy or None
 
     def open(self, path, data=None, method="GET"):
         self.authenticate()
@@ -265,16 +265,22 @@ class WebClient(object):
                 os.remove(cookie_file)
             has_cookie = os.path.isfile(cookie_file)
             cookie_jar = cookielib.LWPCookieJar(cookie_file)
-            handlers = [urllib2.HTTPCookieProcessor(cookie_jar)]
+            handlers = []
+            handlers.append(urllib2.HTTPCookieProcessor(cookie_jar))
             cookie_processor = urllib2.HTTPCookieProcessor(cookie_jar)
-            import ipdb;ipdb.set_trace()
             if self.debug:
                 handlers.append(urllib2.HTTPHandler(debuglevel=1))
-            if self.proxy is not None and self.proxy is not '':
-                if 'https' in self.proxy:
-                    handlers.append(urllib2.ProxyHandler({'https': self.proxy}))
-                elif 'http' in self.proxy:
-                    handlers.append(urllib2.ProxyHandler({'http': self.proxy}))
+            if self.proxy is not None:
+                import socks
+                import socket
+                split = self.proxy.split(":")
+                port = split.pop()
+                hostname = split[1].split("//")[1]
+                # port = 9050
+                # hostname = '127.0.0.1'
+                socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, str(hostname), int(port))
+                socket.socket = socks.socksocket
+                # handlers.append(urllib2.ProxyHandler({self.proxy_type or 'http': self.proxy}))
             if has_cookie:
                 cookie_jar.load(ignore_discard=True)
             opener = urllib2.build_opener(*handlers)

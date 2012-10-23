@@ -20,10 +20,6 @@
           </label>
         </div>
         <div class="field">
-            <label>Proxy (Optional): </label><br />
-            <input type="text" name="proxy" value="${data.proxy}" placeholder="http://example.com:8080" size="28" />
-        </div>
-        <div class="field">
           <label>Login as (Optional): </label><br />
           <input type="text" name="username" value="${data.username}" placeholder="username" size="28" /> :
           <input type="password" name="password" value="${data.password}" placeholder="password" size="28" />
@@ -33,6 +29,24 @@
           	<br />
           	Login information is required for users with permissions to modify wiki pages.
         	</p>
+        </div>
+      </fieldset>
+      <fieldset>
+          <legend>Proxy</legend>
+            <div class="field">
+            <label>Proxy (Optional): </label><br />
+            <p>
+                <input type="checkbox" id="proxy_toggle" /><label for="proxy_toggle"> Use a Proxy</label>
+            </p>
+            <input type="text" name="proxy" id="proxy" value="${data.proxy}" placeholder="http://example.com:8080" size="28" />
+            <select name="proxy_type" id="proxy_type">
+                <option value="None" name="None">Proxy-Type</option>
+                <option value="http" name="http">HTTP-Proxy</option>
+                <option value="socks" name="socks">SOCKS-Proxy</option>
+            </select>
+            <p>
+                <div id="proxy_warning" style="color:red"></div>
+            </p>
         </div>
       </fieldset>
       <fieldset>
@@ -54,6 +68,47 @@
         </py:if>
       </p>
     </form>
+  <script type="text/javascript">
+		$(function() {
+            if ( "${data.proxy}" == "" ) {
+                $("#proxy").attr('disabled', 'disabled');
+                $("#proxy_type").attr('disabled', 'disabled');
+            }
+            else {
+                $('#proxy_toggle').attr('checked', true);
+                $("#proxy").removeAttr('disabled');
+                $("#proxy_type").removeAttr('disabled');
+            }
+
+            $("#proxy_toggle").click(function(){
+                if ($("#proxy_toggle").is(":checked")) {
+                    // use a proxy
+                    $("#proxy").removeAttr('disabled');
+                    $("#proxy_type").removeAttr('disabled');
+
+                }
+                else {
+                    // use no proxy
+                    $("#proxy").attr('disabled', 'disabled');
+                    $("#proxy_type").attr('disabled', 'disabled');
+                }
+            })
+
+            if ( $('input[name=proxy]').val()) {
+                if ( "${data.proxy_type}" == "None" ) {
+                    $("#proxy_warning").text("Proxy-Type cannot be 'None'");
+                }
+            }
+
+            // make the saved proxy_type-value preselected
+            $("#proxy_type option").each(function(index) {
+                if (this.value == "${data.proxy_type}") {
+                    $("#proxy_type option[value='"+this.value+"']").attr('selected',true);
+                }
+            });
+		});
+	</script>
+
   </body>
 
 </html>

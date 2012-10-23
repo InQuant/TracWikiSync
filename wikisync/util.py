@@ -222,7 +222,7 @@ class RegExpFilter(object):
 
 class WebClient(object):
 
-    def __init__(self, baseurl, username=None, password=None, proxy=None, debug=False):
+    def __init__(self, baseurl, username=None, password=None, proxy=None, proxy_type=None, debug=False):
         assert isinstance(baseurl, basestring) and len(baseurl), \
             "'baseurl' expects string, got '%s'" % baseurl
         if baseurl.endswith("/"):
@@ -235,6 +235,7 @@ class WebClient(object):
         self._opener = None
         self._authenticated = False
         self.proxy = proxy or None
+        self.proxy_type = proxy_type or None
 
     def open(self, path, data=None, method="GET"):
         self.authenticate()
@@ -271,16 +272,21 @@ class WebClient(object):
             if self.debug:
                 handlers.append(urllib2.HTTPHandler(debuglevel=1))
             if self.proxy is not None:
-                import socks
-                import socket
-                split = self.proxy.split(":")
-                port = split.pop()
-                hostname = split[1].split("//")[1]
-                # port = 9050
-                # hostname = '127.0.0.1'
-                socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, str(hostname), int(port))
-                socket.socket = socks.socksocket
-                # handlers.append(urllib2.ProxyHandler({self.proxy_type or 'http': self.proxy}))
+                if 'http' in self.proxy:
+                    # assumed format:
+                    # http://mybeautifulproxy.ru:12345
+                    split = self.proxy.split(":")
+                    port = split.pop()
+                    hostname = str(split[1].split("//")[1])
+                if self.proxy_type == 'socks':
+                    import socks
+                    import socket
+                    socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, hostname, int(port))
+                    socket.socket = socks.socksocket
+                elif self.proxy_type == 'http':
+                    proxy_handler = urllib2.ProxyHandler( {'https' if 'https' in self.proxy else 'http' : self.proxy} )
+                    opener = urllib2.build_opener(proxy_handler)
+                    handlers.append(proxy_handler)
             if has_cookie:
                 cookie_jar.load(ignore_discard=True)
             opener = urllib2.build_opener(*handlers)

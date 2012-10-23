@@ -271,7 +271,7 @@ class WebClient(object):
             cookie_processor = urllib2.HTTPCookieProcessor(cookie_jar)
             if self.debug:
                 handlers.append(urllib2.HTTPHandler(debuglevel=1))
-            if self.proxy is not None:
+            if self.proxy:
                 if 'http' in self.proxy:
                     # assumed format:
                     # http://mybeautifulproxy.ru:12345

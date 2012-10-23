@@ -234,7 +234,7 @@ class WebClient(object):
         self._cookie_jar = None
         self._opener = None
         self._authenticated = False
-        self.proxy = proxy or None
+        self.proxy = proxy
 
     def open(self, path, data=None, method="GET"):
         self.authenticate()
@@ -270,7 +270,7 @@ class WebClient(object):
             cookie_processor = urllib2.HTTPCookieProcessor(cookie_jar)
             if self.debug:
                 handlers.append(urllib2.HTTPHandler(debuglevel=1))
-            if self.proxy is not None:
+            if self.proxy:
                 import socks
                 import socket
                 split = self.proxy.split(":")

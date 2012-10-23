@@ -271,7 +271,6 @@ class WebClient(object):
             cookie_processor = urllib2.HTTPCookieProcessor(cookie_jar)
             if self.debug:
                 handlers.append(urllib2.HTTPHandler(debuglevel=1))
-<<<<<<< HEAD
             if self.proxy is not None:
                 if 'http' in self.proxy:
                     # assumed format:
@@ -288,7 +287,6 @@ class WebClient(object):
                     proxy_handler = urllib2.ProxyHandler( {'https' if 'https' in self.proxy else 'http' : self.proxy} )
                     opener = urllib2.build_opener(proxy_handler)
                     handlers.append(proxy_handler)
-=======
             if self.proxy:
                 import socks
                 import socket
@@ -300,7 +298,6 @@ class WebClient(object):
                 socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, str(hostname), int(port))
                 socket.socket = socks.socksocket
                 # handlers.append(urllib2.ProxyHandler({self.proxy_type or 'http': self.proxy}))
->>>>>>> mrsavage/master
             if has_cookie:
                 cookie_jar.load(ignore_discard=True)
             opener = urllib2.build_opener(*handlers)

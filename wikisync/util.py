@@ -222,7 +222,7 @@ class RegExpFilter(object):
 
 class WebClient(object):
 
-    def __init__(self, baseurl, username=None, password=None, proxy=None, proxy_type=None, proxy_username=None, proxy_password=None, debug=False):
+    def __init__(self, baseurl, username=None, password=None, proxy=None, proxy_type=None, proxy_username=None, proxy_password=None, proxy_port=None, debug=False):
         assert isinstance(baseurl, basestring) and len(baseurl), \
             "'baseurl' expects string, got '%s'" % baseurl
         if baseurl.endswith("/"):
@@ -238,6 +238,7 @@ class WebClient(object):
         self.proxy_type = proxy_type
         self.proxy_username = proxy_username
         self.proxy_password = proxy_password
+        self.proxy_port = proxy_port
 
     def open(self, path, data=None, method="GET"):
         self.authenticate()
@@ -274,34 +275,26 @@ class WebClient(object):
             if self.debug:
                 handlers.append(urllib2.HTTPHandler(debuglevel=1))
             if self.proxy:
-                if 'http' in self.proxy:
-                    # assumed format:
-                    # http://mybeautifulproxy.ru:12345
-                    split = self.proxy.split(":")
-                    port = split.pop()
-                    hostname = str(split[1].split("//")[1])
                 if self.proxy_type == 'socks':
                     import socks
                     import socket
-                    socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, hostname, int(port))
+                    socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, self.proxy, int(self.proxy_port))
                     socket.socket = socks.socksocket
                 elif self.proxy_type == 'http':
                     if self.proxy_username and self.proxy_password:
-                        proxy_auth_handler = urllib2.ProxyBasicAuthHandler()
-                        proxy_auth_handler.add_password(None, self.proxy, self.proxy_username, self.proxy_password)
-                        handlers.append(proxy_auth_handler)
+                        proxypassmgr = urllib2.HTTPPasswordMgrWithDefaultRealm()
+                        proxypassmgr.add_password(None, self.proxy, self.username, self.password)
+                        authinfo = urllib2.ProxyBasicAuthHandler(proxypassmgr)
+                        proxy_support = urllib2.ProxyHandler({"http" : self.proxy})
+                        opener = urllib2.build_opener(proxy_support, authinfo)
+                        urllib2.install_opener(opener)
                     proxy_handler = urllib2.ProxyHandler( {'https' if 'https' in self.proxy else 'http' : self.proxy} )
                     opener = urllib2.build_opener(proxy_handler)
                     handlers.append(proxy_handler)
             if self.proxy:
                 import socks
                 import socket
-                split = self.proxy.split(":")
-                port = split.pop()
-                hostname = split[1].split("//")[1]
-                # port = 9050
-                # hostname = '127.0.0.1'
-                socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, str(hostname), int(port))
+                socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, str(self.proxy), int(self.proxy_port))
                 socket.socket = socks.socksocket
                 # handlers.append(urllib2.ProxyHandler({self.proxy_type or 'http': self.proxy}))
             if has_cookie:

@@ -176,6 +176,7 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
             proxy_type = req.args.get("proxy_type", "")
             proxy_username = req.args.get("proxy_username", "")
             proxy_password = req.args.get("proxy_password", "")
+            proxy_port = req.args.get("proxy_port", "")
             if password == password_stud:
                 password = self._get_config("password")
             ignorelist = req.args.get("ignorelist", "")
@@ -188,7 +189,7 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
             if server_info_changed and url:
                 # remote server info has changed, test connection
                 try:
-                    wc = WebClient(url, username, password, proxy, proxy_type, proxy_username, proxy_password, True)
+                    wc = WebClient(url, username, password, proxy, proxy_type, proxy_username, proxy_password, proxy_port, True)
                     wc.test()
                 except Exception, e:
                     if hasattr(e, "code") and e.code == 401:
@@ -207,6 +208,7 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
                 self._set_config("proxy_type", proxy_type)
                 self._set_config("proxy_username", proxy_username)
                 self._set_config("proxy_password", proxy_password)
+                self._set_config("proxy_port", proxy_port)
                 self._save_config(req)
                 if not url:
                     add_warning(req, "Remote server not set, "
@@ -226,6 +228,7 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
             "proxy_type": self._get_config("proxy_type", ""),
             "proxy_username": self._get_config("proxy_username", ""),
             "proxy_password": self._get_config("proxy_password", ""),
+            "proxy_port": self._get_config("proxy_port", ""),
             "password": password,
             "ignorelist": self._get_config("ignorelist", ""),
         }
@@ -470,10 +473,11 @@ class WikiSyncPlugin(Component, WikiSyncMixin):
         proxy_type = self._get_config("proxy_type")
         proxy_username = self._get_config("proxy_username")
         proxy_password = self._get_config("proxy_password")
+        proxy_port = self._get_config("proxy_port")
         if password:
             try:
                 password = str_unmask(password)
             except ValueError:
                 # assume its in clear text
                 pass
-        return WebClient(baseurl, username, password, proxy, proxy_type, proxy_username, proxy_password, debug=False)
+        return WebClient(baseurl, username, password, proxy, proxy_type, proxy_username, proxy_password, proxy_port, debug=False)

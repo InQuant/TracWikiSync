@@ -47,6 +47,13 @@
             <p>
                 <div id="proxy_warning" style="color:red"></div>
             </p>
+            <p>
+            Proxy-Username: <br />
+            <input type="text" name="proxy_username" id="proxy_username" value="${data.proxy_username}" placeholder="" size="28" />
+            <p />
+            Proxy-Password: <br />
+            <input type="password" name="proxy_password" id="proxy_password" value="${data.proxy_password}" placeholder="" size="28" />
+            </p>
         </div>
       </fieldset>
       <fieldset>
@@ -73,11 +80,15 @@
             if ( "${data.proxy}" == "" ) {
                 $("#proxy").attr('disabled', 'disabled');
                 $("#proxy_type").attr('disabled', 'disabled');
+                $("#proxy_username").attr('disabled', 'disabled');
+                $("#proxy_password").attr('disabled', 'disabled');
             }
             else {
                 $('#proxy_toggle').attr('checked', true);
                 $("#proxy").removeAttr('disabled');
                 $("#proxy_type").removeAttr('disabled');
+                $("#proxy_username").removeAttr('disabled');
+                $("#proxy_password").removeAttr('disabled');
             }
 
             $("#proxy_toggle").click(function(){
@@ -85,12 +96,16 @@
                     // use a proxy
                     $("#proxy").removeAttr('disabled');
                     $("#proxy_type").removeAttr('disabled');
+                    $("#proxy_username").removeAttr('disabled');
+                    $("#proxy_password").removeAttr('disabled');
 
                 }
                 else {
                     // use no proxy
                     $("#proxy").attr('disabled', 'disabled');
                     $("#proxy_type").attr('disabled', 'disabled');
+                    $("#proxy_username").attr('disabled', 'disabled');
+                    $("#proxy_password").attr('disabled', 'disabled');
                 }
             })
 

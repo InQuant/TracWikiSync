@@ -174,6 +174,8 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
             password = req.args.get("password", "")
             proxy = req.args.get("proxy", "")
             proxy_type = req.args.get("proxy_type", "")
+            proxy_username = req.args.get("proxy_username", "")
+            proxy_password = req.args.get("proxy_password", "")
             if password == password_stud:
                 password = self._get_config("password")
             ignorelist = req.args.get("ignorelist", "")
@@ -186,7 +188,7 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
             if server_info_changed and url:
                 # remote server info has changed, test connection
                 try:
-                    wc = WebClient(url, username, password, proxy, proxy_type, True)
+                    wc = WebClient(url, username, password, proxy, proxy_type, proxy_username, proxy_password, True)
                     wc.test()
                 except Exception, e:
                     if hasattr(e, "code") and e.code == 401:
@@ -203,6 +205,8 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
                 self._set_config("ignorelist", ignorelist)
                 self._set_config("proxy", proxy)
                 self._set_config("proxy_type", proxy_type)
+                self._set_config("proxy_username", proxy_username)
+                self._set_config("proxy_password", proxy_password)
                 self._save_config(req)
                 if not url:
                     add_warning(req, "Remote server not set, "
@@ -220,6 +224,8 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
             "username": self._get_config("username", ""),
             "proxy": self._get_config("proxy", ""),
             "proxy_type": self._get_config("proxy_type", ""),
+            "proxy_username": self._get_config("proxy_username", ""),
+            "proxy_password": self._get_config("proxy_password", ""),
             "password": password,
             "ignorelist": self._get_config("ignorelist", ""),
         }
@@ -462,10 +468,12 @@ class WikiSyncPlugin(Component, WikiSyncMixin):
         password = self._get_config("password")
         proxy = self._get_config("proxy")
         proxy_type = self._get_config("proxy_type")
+        proxy_username = self._get_config("proxy_username")
+        proxy_password = self._get_config("proxy_password")
         if password:
             try:
                 password = str_unmask(password)
             except ValueError:
                 # assume its in clear text
                 pass
-        return WebClient(baseurl, username, password, proxy, proxy_type, debug=False)
+        return WebClient(baseurl, username, password, proxy, proxy_type, proxy_username, proxy_password, debug=False)

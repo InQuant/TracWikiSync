@@ -222,7 +222,7 @@ class RegExpFilter(object):
 
 class WebClient(object):
 
-    def __init__(self, baseurl, username=None, password=None, proxy=None, proxy_type=None, debug=False):
+    def __init__(self, baseurl, username=None, password=None, proxy=None, proxy_type=None, proxy_username=None, proxy_password=None, debug=False):
         assert isinstance(baseurl, basestring) and len(baseurl), \
             "'baseurl' expects string, got '%s'" % baseurl
         if baseurl.endswith("/"):
@@ -236,6 +236,8 @@ class WebClient(object):
         self._authenticated = False
         self.proxy = proxy
         self.proxy_type = proxy_type
+        self.proxy_username = proxy_username
+        self.proxy_password = proxy_password
 
     def open(self, path, data=None, method="GET"):
         self.authenticate()
@@ -284,6 +286,10 @@ class WebClient(object):
                     socks.setdefaultproxy(socks.PROXY_TYPE_SOCKS5, hostname, int(port))
                     socket.socket = socks.socksocket
                 elif self.proxy_type == 'http':
+                    if self.proxy_username and self.proxy_password:
+                        proxy_auth_handler = urllib2.ProxyBasicAuthHandler()
+                        proxy_auth_handler.add_password(None, self.proxy, self.proxy_username, self.proxy_password)
+                        handlers.append(proxy_auth_handler)
                     proxy_handler = urllib2.ProxyHandler( {'https' if 'https' in self.proxy else 'http' : self.proxy} )
                     opener = urllib2.build_opener(proxy_handler)
                     handlers.append(proxy_handler)

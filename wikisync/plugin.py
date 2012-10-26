@@ -196,11 +196,8 @@ class WikiSyncAdminPanel(Component, WikiSyncMixin):
                         add_warning(req, "Authentication failed, "
                             "settings are not saved")
                     else:
-                        try:
-                            add_warning(req, "Cannot connect to remote server: %s . Settings are not saved" % str(e.reason))
-                        except Exception, ee:
-                            add_warning(req, "Cannot connect to remote server: %s . Settings are not saved" % str(e))
-                            print ee
+                        add_warning(req, "Cannot connect to remote server: %s . Settings are not saved" % str(e))
+                        print e
 
                     is_error = True
             if not is_error:

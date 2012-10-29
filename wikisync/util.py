@@ -262,6 +262,8 @@ class WebClient(object):
                 print "Headers: %s" % e.headers
                 print e.fp.read()
                 print "========================================================="
+        except Exception, e:
+            print "ERROR: %s" % e
 
     def opener(self, no_cache=False):
         if not self._opener:

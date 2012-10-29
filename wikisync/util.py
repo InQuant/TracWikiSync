@@ -385,6 +385,8 @@ class WebClient(object):
         )
         if not info:
             raise RuntimeError("Unable to post data to remote server")
+            self._opener = None
+            self.test()
         return info[0]
 
     def _format_comment(self, comments=""):

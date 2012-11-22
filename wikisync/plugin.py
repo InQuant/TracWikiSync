@@ -406,12 +406,14 @@ class WikiSyncPlugin(Component, WikiSyncMixin):
                         self.log.debug("Pulled wiki '%s'" % item.name)
                     elif action == "push":
                         wiki = WikiPage(self.env, item.name)
+                        author = get_reporter_id(req) or "wikisync"
                         assert wiki.version > 0, "Cannot find wiki '%s'" % item.name
                         item = item.replace(
                             **wc.push(
                                 item.name,
                                 wiki.text,
-                                wiki.comment
+                                wiki.comment,
+                                author
                             )
                         ).synchronized()
                         dao.update(item)

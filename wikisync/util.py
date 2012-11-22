@@ -239,7 +239,6 @@ class WebClient(object):
         self.proxy_username = proxy_username
         self.proxy_password = proxy_password
         self.proxy_port = proxy_port
-        # import ipdb;ipdb.set_trace()
 
     def open(self, path, data=None, method="GET"):
         self.authenticate()
@@ -367,7 +366,7 @@ class WebClient(object):
         f = self.open("wiki/%s" % name, data, "GET")
         return safe_unicode(f.read())
 
-    def push(self, name, text, comments=None):
+    def push(self, name, text, comments=None, author=None):
         data = { "action":"edit" }
         params = parse_form_params(
             self.open("wiki/%s" % name, data, "GET"),
@@ -379,6 +378,8 @@ class WebClient(object):
                 self.url(path))
         params["text"] = text
         params["comment"] = self._format_comment(comments)
+        if author:
+            params["comment"] = params["comment"].replace("wikisync", author)
         info = parse_wiki(
             self.open("wiki/%s" % name, params, "POST"),
             self.basepath("wiki")

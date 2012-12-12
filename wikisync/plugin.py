@@ -148,7 +148,8 @@ class WikiSyncEnvironment(Component, WikiSyncMixin):
             self.log.debug("Removed wikisync '%s'" % item.name)
 
     def wiki_page_version_deleted(self, page):
-        self.wiki_page_version_deleted(page)
+        # self.wiki_page_version_deleted(page)
+        pass
 
     def wiki_page_renamed(self, page, old_name):
         # Treat as new page
